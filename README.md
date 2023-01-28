@@ -1,4 +1,4 @@
-# NeuralOptimalTransport
+# Neural Optimal Transport
 
 Tested with ```PyTorch== 1.9.0```
 
