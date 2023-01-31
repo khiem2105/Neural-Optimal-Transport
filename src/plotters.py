@@ -9,6 +9,8 @@ import seaborn as sns
 import torch
 import gc
 
+DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
 def plot_images(X, Y, T):
     freeze(T);
     with torch.no_grad():
@@ -92,7 +94,7 @@ def plot_bar_and_stochastic_2D(X_sampler, Y_sampler, T, ZD, Z_STD, plot_discrete
     axes[2].set_title(r'DOT map $x\mapsto \int y d\pi^{*}(y|x)$', fontsize=18, pad=10)
     
     # Computing and plotting discrete OT bar map
-    X, Y = X_sampler.sample(DISCRETE_OT), Y_sampler.sample(DISCRETE_OT)
+    X, Y = X_sampler.sample(DISCRETE_OT).to(DEVICE), Y_sampler.sample(DISCRETE_OT).to(DEVICE)
     
     if plot_discrete:
         X_np, Y_np = X.cpu().numpy(), Y.cpu().numpy()
@@ -165,8 +167,8 @@ def plot_generated_2D(X_sampler, Y_sampler, T, ZD, Z_STD):
     freeze(T)
 
     PLOT_SIZE = 512
-    X = X_sampler.sample(PLOT_SIZE).reshape(-1, 1, DIM).repeat(1, 1, 1)
-    Y = Y_sampler.sample(PLOT_SIZE)
+    X = X_sampler.sample(PLOT_SIZE).to(DEVICE).reshape(-1, 1, DIM).repeat(1, 1, 1)
+    Y = Y_sampler.sample(PLOT_SIZE).to(DEVICE)
 
     with torch.no_grad():
         Z = torch.randn(PLOT_SIZE, 1, ZD, device='cuda') * Z_STD
