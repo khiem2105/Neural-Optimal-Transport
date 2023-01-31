@@ -57,9 +57,11 @@ class Up(nn.Module):
         # input is CHW
         diffY = torch.tensor([x2.size()[2] - x1.size()[2]])
         diffX = torch.tensor([x2.size()[3] - x1.size()[3]])
+        padX = torch.div(diffX, 2, rounding_mode="floor")
+        padY = torch.div(diffY, 2, rounding_mode="floor")
 
-        x1 = F.pad(x1, [diffX // 2, diffX - diffX // 2,
-                        diffY // 2, diffY - diffY // 2])
+        x1 = F.pad(x1, [padX, diffX - padX,
+                        padY, diffY - padY])
         # if you have padding issues, see
         # https://github.com/HaiyongJiang/U-Net-Pytorch-Unstructured-Buggy/commit/0e854509c2cea854e247a9c615f175f76fbb2e3a
         # https://github.com/xiaopeng-liao/Pytorch-UNet/commit/8ebac70e633bac59fc22bb5195e513d5832fb3bd
@@ -76,14 +78,14 @@ class OutConv(nn.Module):
         return self.conv(x)
 
 class UNet(nn.Module):
-    def __init__(self, n_channels, n_classes, base_factor=32, bilinear=True):
+    def __init__(self, n_channels_in, n_channels_out, base_factor=32, bilinear=True):
         super(UNet, self).__init__()
-        self.n_channels = n_channels
-        self.n_classes = n_classes
+        self.n_channels_in = n_channels_in
+        self.n_channels_out = n_channels_out
         self.bilinear = bilinear
         self.base_factor = base_factor
 
-        self.inc = DoubleConv(n_channels, base_factor)
+        self.inc = DoubleConv(n_channels_in, base_factor)
         self.down1 = Down(base_factor, 2 * base_factor)
         self.down2 = Down(2 * base_factor, 4 * base_factor)
         self.down3 = Down(4 * base_factor, 8 * base_factor)
@@ -93,7 +95,7 @@ class UNet(nn.Module):
         self.up2 = Up(8 * base_factor, 4 * base_factor // factor, bilinear)
         self.up3 = Up(4 * base_factor, 2 * base_factor // factor, bilinear)
         self.up4 = Up(2 * base_factor, base_factor, bilinear)
-        self.outc = OutConv(base_factor, n_classes)
+        self.outc = OutConv(base_factor, n_channels_out)
 
     def forward(self, x):
         x1 = self.inc(x)
