@@ -29,6 +29,7 @@ class Trainer():
         gamma_0: float,
         gamma_1: float,
         gamma_iters: int,
+        save_path: str,
         img_c: int=3,
         base_factor: int=48,
         plot_interval: int=1000,
@@ -108,6 +109,7 @@ class Trainer():
         self.ckpt_interval = ckpt_interval
         self.cost =  cost
         self.max_steps = max_steps
+        self.save_path = save_path
     
     def train(
         self,
@@ -202,7 +204,7 @@ class Trainer():
                     "curr_step": step
                 }
 
-                torch.save(ckpt, "runs/ckpt.pt")
+                torch.save(ckpt, self.save_path)
             
             if step % self.plot_interval == self.plot_interval - 1 or step == self.max_steps - 1:
                 fig, axes = plot_Z_images(XZ_fixed, Y_fixed, self.T)
