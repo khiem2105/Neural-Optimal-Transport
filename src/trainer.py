@@ -8,6 +8,7 @@ from src.tools import weights_init_D, freeze, unfreeze, fig2img
 from src.distributions import LoaderSampler
 from src.plotters import plot_Z_images, plot_random_Z_images
 
+import os
 from tqdm import tqdm
 import gc
 
@@ -110,6 +111,8 @@ class Trainer():
         self.cost =  cost
         self.max_steps = max_steps
         self.save_path = save_path
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)
     
     def train(
         self,
@@ -204,7 +207,7 @@ class Trainer():
                     "curr_step": step
                 }
 
-                torch.save(ckpt, self.save_path)
+                torch.save(ckpt, os.path.join(self.save_path, f"{step}.pt"))
             
             if step % self.plot_interval == self.plot_interval - 1 or step == self.max_steps - 1:
                 fig, axes = plot_Z_images(XZ_fixed, Y_fixed, self.T)
