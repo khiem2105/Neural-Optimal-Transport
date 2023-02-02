@@ -11,7 +11,7 @@ class Config:
     img_c: int=3
     zc: int=1
     z_std: float=0.1
-    T_iter: int=10
+    T_iters: int=10
     T_lr: float=1e-4
     D_lr: float=1e-4
     base_factor: int=48
