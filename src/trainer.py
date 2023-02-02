@@ -4,13 +4,14 @@ import numpy as np
 
 from src.resnet2 import ResNet_D
 from src.unet import UNet
-from src.tools import weights_init_D, freeze, unfreeze
+from src.tools import weights_init_D, freeze, unfreeze, fig2img
 from src.distributions import LoaderSampler
+from src.plotters import plot_Z_images, plot_random_Z_images
 
 from tqdm import tqdm
 import gc
 
-SEED = 0x000000
+SEED = 0xBADBEEF
 torch.manual_seed(SEED)
 np.random.seed(SEED)
 
@@ -43,7 +44,7 @@ class Trainer():
 
         # Load checkpoint if there is
         if ckpt_path:
-            self.ckpt = torch.load(ckpt_path)
+            self.ckpt = torch.load(ckpt_path, map_location=self.device)
         else:
             self.ckpt = None
 
@@ -53,19 +54,19 @@ class Trainer():
                 n_channels_in=img_c+zc,
                 n_channels_out=img_c,
                 base_factor=base_factor
-            )
+            ).to(self.device)
         else:
             self.T = UNet(
                 n_channels_in=img_c,
                 n_channels_out=img_c,
                 base_factor=base_factor
-            )
+            ).to(self.device)
         
         # Initialize D network
         self.D = ResNet_D(
             size=img_size,
             nc=img_c
-        )
+        ).to(self.device)
 
         # Initialize T opt
         self.T_opt = torch.optim.Adam(
@@ -91,9 +92,6 @@ class Trainer():
         else:
             self.D.apply(weights_init_D)
             self.curr_step = 0
-        
-        self.T = self.T.to(self.device)
-        self.D = self.D.to(self.device)
 
         self.img_size = img_size
         self.batch_size = batch_size
@@ -116,10 +114,16 @@ class Trainer():
         X_train_sampler: LoaderSampler,
         X_test_sampler: LoaderSampler,
         Y_train_sampler: LoaderSampler,
-        Y_test_sampler: LoaderSampler
+        Y_test_sampler: LoaderSampler,
+        XZ_fixed: torch.Tensor,
+        XZ_test_fixed: torch.Tensor,
+        Y_fixed: torch.Tensor,
+        Y_test_fixed: torch.Tensor,
+        logger
     ):
 
         for step in tqdm(range(self.curr_step, self.max_steps)):
+            print(step)
             # Adaptive gamma
             gamma = min(self.gamma_1, self.gamma_0 + (self.gamma_1 - self.gamma_0) * step / self.gamma_iters)
 
@@ -146,6 +150,8 @@ class Trainer():
                     T_X = self.T(X)
                     
                     T_loss = F.mse_loss(X, T_X) - self.D(T_X).mean()
+
+                logger.log({"T_loss": T_loss.item()}, step=step)
                 
                 self.T_opt.zero_grad()
                 T_loss.backward()
@@ -174,6 +180,7 @@ class Trainer():
                     T_XZ = self.T(X)
             
             D_loss = self.D(T_XZ).mean() - self.D(Y).mean()
+            logger.log({"D_loss": D_loss.item()}, step=step)
             self.D_opt.zero_grad()
             D_loss.backward()
             self.D_opt.step()
@@ -185,6 +192,30 @@ class Trainer():
             
             gc.collect()
             torch.cuda.empty_cache()
+
+            if step % self.ckpt_interval == self.ckpt_interval - 1 or step == self.max_steps - 1:
+                ckpt = {
+                    "T": self.T.state_dict(),
+                    "D": self.D.state_dict(),
+                    "T_opt": self.T_opt.state_dict(),
+                    "D_opt": self.D_opt.state_dict(),
+                    "curr_step": step
+                }
+
+                torch.save(ckpt, "runs/ckpt.pt")
+            
+            if step % self.plot_interval == self.plot_interval - 1 or step == self.max_steps - 1:
+                fig, axes = plot_Z_images(XZ_fixed, Y_fixed, self.T)
+                logger.log({'Fixed Images' : [logger.Image(fig2img(fig))]}, step=step)  
+                
+                fig, axes = plot_random_Z_images(X_train_sampler, self.zc, self.z_std,  Y_train_sampler, self.T)
+                logger.log({'Random Images' : [logger.Image(fig2img(fig))]}, step=step) 
+                
+                fig, axes = plot_Z_images(XZ_test_fixed, Y_test_fixed, self.T)
+                logger.log({'Fixed Test Images' : [logger.Image(fig2img(fig))]}, step=step) 
+                
+                fig, axes = plot_random_Z_images(X_test_sampler, self.zc, self.z_std,  Y_test_sampler, self.T)
+                logger.log({'Random Test Images' : [logger.Image(fig2img(fig))]}, step=step) 
 
 
 
