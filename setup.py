@@ -29,7 +29,7 @@ setup(
     author="Khiem",
     license="MIT",
     url="https://github.com/khiem2105/Neural-Optimal-Transport.git",
-    python_requires=">=3.9",
+    python_requires=">=3.7",
     packages=find_packages(),
     version=f"{__version__}.dev0+{hash}",
     include_package_data=True,
