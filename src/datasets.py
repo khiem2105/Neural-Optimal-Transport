@@ -20,7 +20,7 @@ class ToyDataset(Dataset):
     def __getitem__(self, index):
         return self.data[index], 0
 
-def load_celeba(img_size, batch_size, root="datasets", test_ratio=0.1):
+def load_celeba(img_size, batch_size, root="datasets", num_workers=2, test_ratio=0.1):
     transform = transforms.Compose([
         transforms.Resize((img_size, img_size)),
         transforms.ToTensor(),
@@ -58,20 +58,20 @@ def load_celeba(img_size, batch_size, root="datasets", test_ratio=0.1):
     )
 
     celeba_male_trainloader = LoaderSampler(
-        DataLoader(celeba_male_train, batch_size=batch_size, num_workers=8, shuffle=True),
+        DataLoader(celeba_male_train, batch_size=batch_size, num_workers=num_workers, shuffle=True),
         device=DEVICE
     )
     celeba_male_test_loader = LoaderSampler(
-        DataLoader(celeba_male_test, batch_size=batch_size, num_workers=8, shuffle=True),
+        DataLoader(celeba_male_test, batch_size=batch_size, num_workers=num_workers, shuffle=True),
         device=DEVICE
     )
 
     celeba_female_trainloader = LoaderSampler(
-        DataLoader(celeba_female_train, batch_size=batch_size, num_workers=8, shuffle=True),
+        DataLoader(celeba_female_train, batch_size=batch_size, num_workers=num_workers, shuffle=True),
         device=DEVICE
     )
     celeba_female_testloader = LoaderSampler(
-        DataLoader(celeba_female_test, batch_size=batch_size, num_workers=8, shuffle=True),
+        DataLoader(celeba_female_test, batch_size=batch_size, num_workers=num_workers, shuffle=True),
         device=DEVICE
     )
 
