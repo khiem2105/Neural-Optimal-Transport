@@ -25,7 +25,7 @@ with open("requirements.txt") as f:
     reqs = [line.strip() for line in f]
 
 setup(
-    name="Neural-Optimal-Transport",
+    name="NOT",
     author="Khiem",
     license="MIT",
     url="https://github.com/khiem2105/Neural-Optimal-Transport.git",
