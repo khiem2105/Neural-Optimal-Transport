@@ -11,7 +11,7 @@ import gc
 
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-def plot_images(X, Y, T):
+def plot_images(X, Y, T, path: str=None):
     freeze(T);
     with torch.no_grad():
         T_X = T(X)
@@ -29,14 +29,17 @@ def plot_images(X, Y, T):
     
     fig.tight_layout(pad=0.001)
     torch.cuda.empty_cache(); gc.collect()
+    
+    if path:
+        plt.savefig(path, bbox_inches="tight")
     return fig, axes
 
-def plot_random_images(X_sampler, Y_sampler, T):
+def plot_random_images(X_sampler, Y_sampler, T, path: str=None):
     X = X_sampler.sample(10)
     Y = Y_sampler.sample(10)
-    return plot_images(X, Y, T)
+    return plot_images(X, Y, T, path)
 
-def plot_Z_images(XZ, Y, T):
+def plot_Z_images(XZ, Y, T, path: str=None):
     freeze(T);
     with torch.no_grad():
         T_XZ = T(
@@ -57,16 +60,19 @@ def plot_Z_images(XZ, Y, T):
     
     fig.tight_layout(pad=0.001)
     torch.cuda.empty_cache(); gc.collect()
+
+    if path:
+        plt.savefig(path, bbox_inches="tight")
     return fig, axes
 
-def plot_random_Z_images(X_sampler, ZC, Z_STD, Y_sampler, T):
+def plot_random_Z_images(X_sampler, ZC, Z_STD, Y_sampler, T, path: str=None):
     X = X_sampler.sample(10)[:,None].repeat(1,4,1,1,1)
     with torch.no_grad():
         Z = torch.randn(10, 4, ZC, X.size(3), X.size(4), device='cuda') * Z_STD
         XZ = torch.cat([X, Z], dim=2)
     X = X_sampler.sample(10)
     Y = Y_sampler.sample(10)
-    return plot_Z_images(XZ, Y, T)
+    return plot_Z_images(XZ, Y, T, path)
 
 
 def plot_bar_and_stochastic_2D(X_sampler, Y_sampler, T, ZD, Z_STD, plot_discrete=True):
