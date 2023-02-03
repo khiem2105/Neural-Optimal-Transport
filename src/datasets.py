@@ -102,7 +102,7 @@ def load_digit_dataset(batch_size: int, root: str, name: str, img_size: int=28, 
     elif name == "MNIST":
         transform = transforms.Compose([
             transforms.ToTensor(),
-            transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
+            transforms.Normalize([0.5], [0.5])
         ])
 
         train_dataset = MNIST(
