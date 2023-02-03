@@ -2,7 +2,7 @@ import matplotlib
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import collections as mc
-from .tools import ewma, freeze
+from tools import ewma, freeze
 import ot
 import seaborn as sns
 
@@ -46,10 +46,13 @@ def plot_Z_images(XZ, Y, T, path: str=None):
             XZ.flatten(start_dim=0, end_dim=1)
         ).permute(1,2,3,0).reshape(Y.shape[1], Y.shape[2], Y.shape[3], 10, 4).permute(4,3,0,1,2).flatten(start_dim=0, end_dim=1)
         imgs = torch.cat([XZ[:,0,:Y.shape[1]], T_XZ, Y]).to('cpu').permute(0,2,3,1).mul(0.5).add(0.5).numpy().clip(0,1)
-
+    if imgs.shape[-1] == 1:
+        cmap = "gray"
+    else:
+        cmap = None
     fig, axes = plt.subplots(6, 10, figsize=(15, 9), dpi=150)
     for i, ax in enumerate(axes.flatten()):
-        ax.imshow(imgs[i])
+        ax.imshow(imgs[i], cmap=cmap)
         ax.get_xaxis().set_visible(False)
         ax.set_yticks([])
         

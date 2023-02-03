@@ -3,11 +3,11 @@ import torch.nn.functional as F
 import numpy as np
 import matplotlib.pyplot as plt
 
-from src.resnet2 import ResNet_D
-from src.unet import UNet
-from src.tools import weights_init_D, freeze, unfreeze, fig2img
-from src.distributions import LoaderSampler
-from src.plotters import plot_Z_images, plot_random_Z_images
+from resnet2 import ResNet_D
+from unet import UNet
+from tools import weights_init_D, freeze, unfreeze, fig2img
+from distributions import LoaderSampler
+from plotters import plot_Z_images, plot_random_Z_images
 
 import wandb
 
@@ -133,7 +133,6 @@ class Trainer():
     ):
 
         for step in tqdm(range(self.curr_step, self.max_steps)):
-            print(step)
             # Adaptive gamma
             gamma = min(self.gamma_1, self.gamma_0 + (self.gamma_1 - self.gamma_0) * step / self.gamma_iters)
 

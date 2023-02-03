@@ -3,7 +3,7 @@ from torch.utils.data import Dataset, Subset, DataLoader, random_split
 from torchvision.datasets import CelebA, SVHN, MNIST, KMNIST
 import torchvision.transforms as transforms
 
-from src.distributions import Sampler, LoaderSampler
+from distributions import Sampler, LoaderSampler
 
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 

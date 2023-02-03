@@ -12,10 +12,10 @@ from tqdm import tqdm_notebook
 import multiprocessing
 
 from PIL import Image
-from .inception import InceptionV3
+from inception import InceptionV3
 from tqdm import tqdm_notebook as tqdm
-from .fid_score import calculate_frechet_distance
-from .distributions import LoaderSampler
+from fid_score import calculate_frechet_distance
+from distributions import LoaderSampler
 import h5py
 from torch.utils.data import TensorDataset
 
