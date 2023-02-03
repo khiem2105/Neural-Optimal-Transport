@@ -78,10 +78,9 @@ def load_celeba(img_size, batch_size, root="datasets", num_workers=2, test_ratio
     return celeba_male_trainloader, celeba_male_test_loader, celeba_female_trainloader, celeba_female_testloader
     
 
-def load_digit_dataset(batch_size: int, root: str, name: str, img_size: int=28, num_workers: int=2):
+def load_digit_dataset(batch_size: int, root: str, name: str, img_size: int=32, num_workers: int=2):
     if name == "SVHN":
         transform = transforms.Compose([
-            transforms.Resize([img_size, img_size]),
             transforms.ToTensor(),
             transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
         ])
@@ -101,6 +100,7 @@ def load_digit_dataset(batch_size: int, root: str, name: str, img_size: int=28, 
         )
     elif name == "MNIST":
         transform = transforms.Compose([
+            transforms.Resize((img_size, img_size)),
             transforms.ToTensor(),
             lambda x: x.repeat(3, 1, 1),
             transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
