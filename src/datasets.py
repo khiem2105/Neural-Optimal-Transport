@@ -1,6 +1,6 @@
 import torch
 from torch.utils.data import Dataset, Subset, DataLoader, random_split
-from torchvision.datasets import CelebA
+from torchvision.datasets import CelebA, SVHN, MNIST, KMNIST
 import torchvision.transforms as transforms
 
 from src.distributions import Sampler, LoaderSampler
@@ -20,7 +20,7 @@ class ToyDataset(Dataset):
     def __getitem__(self, index):
         return self.data[index], 0
 
-def load_celeba(img_size, batch_size, root="datasets", test_ratio=0.1):
+def load_celeba(img_size, batch_size, root="datasets", num_workers=2, test_ratio=0.1):
     transform = transforms.Compose([
         transforms.Resize((img_size, img_size)),
         transforms.ToTensor(),
@@ -58,22 +58,95 @@ def load_celeba(img_size, batch_size, root="datasets", test_ratio=0.1):
     )
 
     celeba_male_trainloader = LoaderSampler(
-        DataLoader(celeba_male_train, batch_size=batch_size, num_workers=8, shuffle=True),
+        DataLoader(celeba_male_train, batch_size=batch_size, num_workers=num_workers, shuffle=True),
         device=DEVICE
     )
     celeba_male_test_loader = LoaderSampler(
-        DataLoader(celeba_male_test, batch_size=batch_size, num_workers=8, shuffle=True),
+        DataLoader(celeba_male_test, batch_size=batch_size, num_workers=num_workers, shuffle=True),
         device=DEVICE
     )
 
     celeba_female_trainloader = LoaderSampler(
-        DataLoader(celeba_female_train, batch_size=batch_size, num_workers=8, shuffle=True),
+        DataLoader(celeba_female_train, batch_size=batch_size, num_workers=num_workers, shuffle=True),
         device=DEVICE
     )
     celeba_female_testloader = LoaderSampler(
-        DataLoader(celeba_female_test, batch_size=batch_size, num_workers=8, shuffle=True),
+        DataLoader(celeba_female_test, batch_size=batch_size, num_workers=num_workers, shuffle=True),
         device=DEVICE
     )
 
     return celeba_male_trainloader, celeba_male_test_loader, celeba_female_trainloader, celeba_female_testloader
     
+
+def load_digit_dataset(batch_size: int, root: str, name: str, img_size: int=32, num_workers: int=2, duplicate_channels: bool=False):
+    if name == "SVHN":
+        transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
+        ])
+        
+        train_dataset = SVHN(
+            root=root,
+            split="train",
+            transform=transform,
+            download=True
+        )
+
+        test_dataset = SVHN(
+            root=root,
+            split="test",
+            transform=transform,
+            download=True
+        )
+    elif name == "MNIST" or name == "KMNIST":
+        transform = transforms.Compose([
+            transforms.Resize((img_size, img_size)),
+            transforms.ToTensor(),
+            lambda x: x.repeat(3, 1, 1),
+            transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
+        ]) if duplicate_channels else transforms.Compose([
+            transforms.Resize((img_size, img_size)),
+            transforms.ToTensor(),
+            transforms.Normalize([0.5], [0.5])
+        ])
+
+        if name == "MNIST":
+            train_dataset = MNIST(
+                root=root,
+                train=True,
+                transform=transform,
+                download=True
+            )
+
+            test_dataset = MNIST(
+                root=root,
+                transform=transform,
+                train=False
+            )
+        else:
+            train_dataset = KMNIST(
+                root=root,
+                train=True,
+                transform=transform,
+                download=True
+            )
+
+            test_dataset = KMNIST(
+                root=root,
+                transform=transform,
+                train=False
+            )
+    else:
+        raise Exception("Not implemented datasets")
+
+    train_loader = LoaderSampler(
+        DataLoader(train_dataset, batch_size=batch_size, num_workers=num_workers, shuffle=True),
+        device=DEVICE
+    )
+
+    test_loader = LoaderSampler(
+        DataLoader(test_dataset, batch_size=batch_size, num_workers=num_workers, shuffle=True),
+        device=DEVICE
+    )
+
+    return train_loader, test_loader

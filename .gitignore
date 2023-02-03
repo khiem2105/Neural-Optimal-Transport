@@ -133,3 +133,6 @@ celeba/
 
 # wandb
 wandb
+celeba.zip
+# logs
+runs/
