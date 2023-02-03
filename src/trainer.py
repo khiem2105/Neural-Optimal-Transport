@@ -8,6 +8,8 @@ from src.tools import weights_init_D, freeze, unfreeze, fig2img
 from src.distributions import LoaderSampler
 from src.plotters import plot_Z_images, plot_random_Z_images
 
+import wandb
+
 import os
 from tqdm import tqdm
 import gc
@@ -209,20 +211,20 @@ class Trainer():
                     "curr_step": step
                 }
 
-                torch.save(ckpt, os.path.join(self.save_path, f"{step}.pt"))
+                torch.save(ckpt, os.path.join(self.save_path, f"step={step}.pt"))
             
             if step % self.plot_interval == self.plot_interval - 1 or step == self.max_steps - 1:
                 fig, axes = plot_Z_images(XZ_fixed, Y_fixed, self.T)
-                logger.log({'Fixed Images' : [logger.Image(fig2img(fig))]}, step=step)  
+                logger.log({'Fixed Images' : [wandb.Image(fig2img(fig))]}, step=step)  
                 
                 fig, axes = plot_random_Z_images(X_train_sampler, self.zc, self.z_std,  Y_train_sampler, self.T)
-                logger.log({'Random Images' : [logger.Image(fig2img(fig))]}, step=step) 
+                logger.log({'Random Images' : [wandb.Image(fig2img(fig))]}, step=step) 
                 
                 fig, axes = plot_Z_images(XZ_test_fixed, Y_test_fixed, self.T)
-                logger.log({'Fixed Test Images' : [logger.Image(fig2img(fig))]}, step=step) 
+                logger.log({'Fixed Test Images' : [wandb.Image(fig2img(fig))]}, step=step) 
                 
                 fig, axes = plot_random_Z_images(X_test_sampler, self.zc, self.z_std,  Y_test_sampler, self.T)
-                logger.log({'Random Test Images' : [logger.Image(fig2img(fig))]}, step=step) 
+                logger.log({'Random Test Images' : [wandb.Image(fig2img(fig))]}, step=step) 
 
 
 
