@@ -1,6 +1,6 @@
 import torch
 from torch.utils.data import Dataset, Subset, DataLoader, random_split
-from torchvision.datasets import CelebA, SVHN, MNIST
+from torchvision.datasets import CelebA, SVHN, MNIST, KMNIST
 import torchvision.transforms as transforms
 
 from src.distributions import Sampler, LoaderSampler
@@ -78,7 +78,7 @@ def load_celeba(img_size, batch_size, root="datasets", num_workers=2, test_ratio
     return celeba_male_trainloader, celeba_male_test_loader, celeba_female_trainloader, celeba_female_testloader
     
 
-def load_digit_dataset(batch_size: int, root: str, name: str, img_size: int=32, num_workers: int=2):
+def load_digit_dataset(batch_size: int, root: str, name: str, img_size: int=32, num_workers: int=2, duplicate_channels: bool=False):
     if name == "SVHN":
         transform = transforms.Compose([
             transforms.ToTensor(),
@@ -98,26 +98,44 @@ def load_digit_dataset(batch_size: int, root: str, name: str, img_size: int=32, 
             transform=transform,
             download=True
         )
-    elif name == "MNIST":
+    elif name == "MNIST" or name == "KMNIST":
         transform = transforms.Compose([
             transforms.Resize((img_size, img_size)),
             transforms.ToTensor(),
             lambda x: x.repeat(3, 1, 1),
             transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
+        ]) if duplicate_channels else transforms.Compose([
+            transforms.Resize((img_size, img_size)),
+            transforms.ToTensor(),
+            transforms.Normalize([0.5], [0.5])
         ])
 
-        train_dataset = MNIST(
-            root=root,
-            train=True,
-            transform=transform,
-            download=True
-        )
+        if name == "MNIST":
+            train_dataset = MNIST(
+                root=root,
+                train=True,
+                transform=transform,
+                download=True
+            )
 
-        test_dataset = MNIST(
-            root=root,
-            transform=transform,
-            train=False
-        )
+            test_dataset = MNIST(
+                root=root,
+                transform=transform,
+                train=False
+            )
+        else:
+            train_dataset = KMNIST(
+                root=root,
+                train=True,
+                transform=transform,
+                download=True
+            )
+
+            test_dataset = KMNIST(
+                root=root,
+                transform=transform,
+                train=False
+            )
     else:
         raise Exception("Not implemented datasets")
 
