@@ -8,7 +8,8 @@ class Config:
     gamma_1: float
     gamma_iters: int
     gamma_0: float=0
-    img_c: int=3
+    img_c_int: int=3
+    img_c_out: int=3
     zc: int=1
     z_std: float=0.1
     T_iters: int=10

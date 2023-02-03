@@ -31,7 +31,8 @@ class Trainer():
         gamma_1: float,
         gamma_iters: int,
         save_path: str,
-        img_c: int=3,
+        img_c_in: int=3,
+        img_c_out: int=3,
         base_factor: int=48,
         plot_interval: int=1000,
         ckpt_interval: int=1000,
@@ -53,21 +54,21 @@ class Trainer():
         # Initialize T network
         if cost == "weak":
             self.T = UNet(
-                n_channels_in=img_c+zc,
-                n_channels_out=img_c,
+                n_channels_in=img_c_in+zc,
+                n_channels_out=img_c_out,
                 base_factor=base_factor
             ).to(self.device)
         else:
             self.T = UNet(
-                n_channels_in=img_c,
-                n_channels_out=img_c,
+                n_channels_in=img_c_in,
+                n_channels_out=img_c_out,
                 base_factor=base_factor
             ).to(self.device)
         
         # Initialize D network
         self.D = ResNet_D(
             size=img_size,
-            nc=img_c
+            nc=img_c_out
         ).to(self.device)
 
         # Initialize T opt
@@ -104,7 +105,8 @@ class Trainer():
         self.gamma_0 = gamma_0
         self.gamma_1 = gamma_1
         self.gamma_iters = gamma_iters
-        self.img_c = img_c
+        self.img_c_in = img_c_in
+        self.img_c_out = img_c_out
         self.base_factor = base_factor
         self.plot_interval = plot_interval
         self.ckpt_interval = ckpt_interval
