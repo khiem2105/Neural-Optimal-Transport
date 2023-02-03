@@ -147,7 +147,7 @@ class Trainer():
                     
                     T_XZ = self.T(
                         XZ.flatten(start_dim=0, end_dim=1)
-                    ).reshape(self.batch_size, -1, self.img_c, self.img_size, self.img_size)
+                    ).reshape(self.batch_size, -1, self.img_c_out, self.img_size, self.img_size)
 
                     T_loss = F.mse_loss(X, T_XZ) - T_XZ.var(dim=1).mean() * gamma - \
                              self.D(T_XZ.flatten(start_dim=0, end_dim=1)).mean()
