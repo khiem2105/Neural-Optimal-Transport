@@ -111,7 +111,7 @@ def h5py_to_dataset(path, img_size=64):
         a_group_key = list(f.keys())[0]
 
         # Get the data
-        data = list(f[a_group_key])
+        data = list(f[a_group_key][:50000])
     with torch.no_grad():
         dataset = 2 * (torch.tensor(np.array(data), dtype=torch.float32) / 255.).permute(0, 3, 1, 2) - 1
         dataset = F.interpolate(dataset, img_size, mode='bilinear')    

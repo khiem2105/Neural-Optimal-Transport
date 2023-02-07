@@ -135,6 +135,7 @@ class Trainer():
         for step in tqdm(range(self.curr_step, self.max_steps)):
             # Adaptive gamma
             gamma = min(self.gamma_1, self.gamma_0 + (self.gamma_1 - self.gamma_0) * step / self.gamma_iters)
+            logger.log({"gamma": gamma}, step=step)
 
             # Update T
             unfreeze(self.T)
