@@ -41,7 +41,8 @@ class Trainer():
         ckpt_interval: int=1000,
         ckpt_path: str=None,
         cost: str="weak",
-        max_steps: int=100001        
+        max_steps: int=100001  ,
+        z_sampler="gaussian"
     ):
         super(Trainer, self).__init__()
 
@@ -104,6 +105,7 @@ class Trainer():
         self.zc = zc
         self.z_std = z_std
         self.z_size = z_size
+        self.z_sampler = z_sampler
         self.T_iters = T_iters
         self.gamma_0 = gamma_0
         self.gamma_1 = gamma_1
@@ -145,7 +147,13 @@ class Trainer():
                 if self.cost == "weak":
                     X = X_train_sampler.sample(self.batch_size)[:, None].repeat(1, self.z_size, 1, 1, 1)
                     with torch.no_grad():
-                        Z = torch.randn(self.batch_size, self.z_size, self.zc, self.img_size, self.img_size, device=self.device) * self.z_std
+                        if self.z_sampler == "gaussian":
+                            Z = torch.randn(self.batch_size, self.z_size, self.zc, self.img_size, self.img_size, device=self.device) * self.z_std
+                            
+                        elif self.z_sampler == "uniform":
+                            Z = torch.rand(self.batch_size, self.z_size, self.zc, self.img_size, self.img_size, device=self.device)
+                        else:
+                            raise RuntimeError("Unknow z_sampler")
                         XZ = torch.cat([X, Z], dim=2)
                     
                     T_XZ = self.T(
@@ -183,7 +191,12 @@ class Trainer():
             Y = Y_train_sampler.sample(self.batch_size)
             with torch.no_grad():
                 if self.cost == "weak":
-                    Z = torch.randn(self.batch_size, self.zc, self.img_size, self.img_size, device=self.device) * self.z_std
+                    if self.z_sampler == "gaussian":
+                        Z = torch.randn(self.batch_size, self.zc, self.img_size, self.img_size, device=self.device) * self.z_std
+                    elif self.z_sampler == "uniform":
+                        Z = torch.rand(self.batch_size, self.zc, self.img_size, self.img_size, device=self.device)
+                    else:
+                        raise RuntimeError("Unknown z_sampler")
                     XZ = torch.cat([X, Z], dim=1)
                     T_XZ = self.T(XZ)
                 else:
