@@ -22,7 +22,7 @@ from torch.utils.data import TensorDataset
 import gc
 
 from torch.utils.data import Subset, DataLoader
-from torchvision.transforms import Compose, Resize, Normalize, ToTensor, RandomCrop
+from torchvision.transforms import Compose, Resize, Normalize, ToTensor, RandomCrop, CenterCrop
 from torchvision.datasets import ImageFolder
 
 
@@ -32,6 +32,15 @@ def load_dataset(name, path, img_size=64, batch_size=64, test_ratio=0.1, device=
     elif name in ['celeba_female', 'celeba_male', 'aligned_anime_faces', 'describable_textures']:
         transform = Compose([Resize((img_size, img_size)), ToTensor(), Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
         dataset = ImageFolder(path, transform=transform)
+    elif name in ['cartoon']:
+        transform = Compose([
+            CenterCrop(400),
+            Resize((img_size, img_size)),
+            ToTensor(),
+            Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
+        ])
+        dataset = ImageFolder(path, transform=transform)
+
     else:
         raise Exception('Unknown dataset')
         
