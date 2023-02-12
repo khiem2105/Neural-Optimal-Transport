@@ -129,7 +129,10 @@ dmypy.json
 .pyre/
 
 # datasets
-celeba/
+datasets/
+
+# wandb
+wandb
 celeba.zip
 MNIST/
 KMNIST

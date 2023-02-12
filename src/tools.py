@@ -12,17 +12,17 @@ from tqdm import tqdm_notebook
 import multiprocessing
 
 from PIL import Image
-from .inception import InceptionV3
+from inception import InceptionV3
 from tqdm import tqdm_notebook as tqdm
-from .fid_score import calculate_frechet_distance
-from .distributions import LoaderSampler
+from fid_score import calculate_frechet_distance
+from distributions import LoaderSampler
 import h5py
 from torch.utils.data import TensorDataset
 
 import gc
 
 from torch.utils.data import Subset, DataLoader
-from torchvision.transforms import Compose, Resize, Normalize, ToTensor, RandomCrop
+from torchvision.transforms import Compose, Resize, Normalize, ToTensor, RandomCrop, CenterCrop
 from torchvision.datasets import ImageFolder
 
 
@@ -32,6 +32,15 @@ def load_dataset(name, path, img_size=64, batch_size=64, test_ratio=0.1, device=
     elif name in ['celeba_female', 'celeba_male', 'aligned_anime_faces', 'describable_textures']:
         transform = Compose([Resize((img_size, img_size)), ToTensor(), Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
         dataset = ImageFolder(path, transform=transform)
+    elif name in ['cartoon']:
+        transform = Compose([
+            CenterCrop(400),
+            Resize((img_size, img_size)),
+            ToTensor(),
+            Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
+        ])
+        dataset = ImageFolder(path, transform=transform)
+
     else:
         raise Exception('Unknown dataset')
         
@@ -111,7 +120,7 @@ def h5py_to_dataset(path, img_size=64):
         a_group_key = list(f.keys())[0]
 
         # Get the data
-        data = list(f[a_group_key])
+        data = list(f[a_group_key][:50000])
     with torch.no_grad():
         dataset = 2 * (torch.tensor(np.array(data), dtype=torch.float32) / 255.).permute(0, 3, 1, 2) - 1
         dataset = F.interpolate(dataset, img_size, mode='bilinear')    

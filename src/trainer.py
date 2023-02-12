@@ -3,11 +3,11 @@ import torch.nn.functional as F
 import numpy as np
 import matplotlib.pyplot as plt
 
-from src.resnet2 import ResNet_D
-from src.unet import UNet
-from src.tools import weights_init_D, freeze, unfreeze, fig2img
-from src.distributions import LoaderSampler
-from src.plotters import plot_Z_images, plot_random_Z_images
+from resnet2 import ResNet_D
+from unet import UNet
+from tools import weights_init_D, freeze, unfreeze, fig2img
+from distributions import LoaderSampler
+from plotters import plot_Z_images, plot_random_Z_images
 
 import wandb
 
@@ -41,7 +41,8 @@ class Trainer():
         ckpt_interval: int=1000,
         ckpt_path: str=None,
         cost: str="weak",
-        max_steps: int=100001        
+        max_steps: int=100001  ,
+        z_sampler="gaussian"
     ):
         super(Trainer, self).__init__()
 
@@ -104,6 +105,7 @@ class Trainer():
         self.zc = zc
         self.z_std = z_std
         self.z_size = z_size
+        self.z_sampler = z_sampler
         self.T_iters = T_iters
         self.gamma_0 = gamma_0
         self.gamma_1 = gamma_1
@@ -133,9 +135,9 @@ class Trainer():
     ):
 
         for step in tqdm(range(self.curr_step, self.max_steps)):
-            print(step)
             # Adaptive gamma
             gamma = min(self.gamma_1, self.gamma_0 + (self.gamma_1 - self.gamma_0) * step / self.gamma_iters)
+            logger.log({"gamma": gamma}, step=step)
 
             # Update T
             unfreeze(self.T)
@@ -145,7 +147,13 @@ class Trainer():
                 if self.cost == "weak":
                     X = X_train_sampler.sample(self.batch_size)[:, None].repeat(1, self.z_size, 1, 1, 1)
                     with torch.no_grad():
-                        Z = torch.randn(self.batch_size, self.z_size, self.zc, self.img_size, self.img_size, device=self.device) * self.z_std
+                        if self.z_sampler == "gaussian":
+                            Z = torch.randn(self.batch_size, self.z_size, self.zc, self.img_size, self.img_size, device=self.device) * self.z_std
+                            
+                        elif self.z_sampler == "uniform":
+                            Z = torch.rand(self.batch_size, self.z_size, self.zc, self.img_size, self.img_size, device=self.device)
+                        else:
+                            raise RuntimeError("Unknow z_sampler")
                         XZ = torch.cat([X, Z], dim=2)
                     
                     T_XZ = self.T(
@@ -183,7 +191,12 @@ class Trainer():
             Y = Y_train_sampler.sample(self.batch_size)
             with torch.no_grad():
                 if self.cost == "weak":
-                    Z = torch.randn(self.batch_size, self.zc, self.img_size, self.img_size, device=self.device) * self.z_std
+                    if self.z_sampler == "gaussian":
+                        Z = torch.randn(self.batch_size, self.zc, self.img_size, self.img_size, device=self.device) * self.z_std
+                    elif self.z_sampler == "uniform":
+                        Z = torch.rand(self.batch_size, self.zc, self.img_size, self.img_size, device=self.device)
+                    else:
+                        raise RuntimeError("Unknown z_sampler")
                     XZ = torch.cat([X, Z], dim=1)
                     T_XZ = self.T(XZ)
                 else:
@@ -219,7 +232,7 @@ class Trainer():
                 logger.log({'Fixed Images' : [wandb.Image(fig2img(fig))]}, step=step)
                 plt.close(fig)  
                 
-                fig, axes = plot_random_Z_images(X_train_sampler, self.zc, self.z_std,  Y_train_sampler, self.T)
+                fig, axes = plot_random_Z_images(X_train_sampler, self.zc, self.z_std,  Y_train_sampler, self.T, z_sampler=self.z_sampler)
                 logger.log({'Random Images' : [wandb.Image(fig2img(fig))]}, step=step)
                 plt.close(fig) 
                 
@@ -227,7 +240,7 @@ class Trainer():
                 logger.log({'Fixed Test Images' : [wandb.Image(fig2img(fig))]}, step=step) 
                 plt.close(fig)
 
-                fig, axes = plot_random_Z_images(X_test_sampler, self.zc, self.z_std,  Y_test_sampler, self.T)
+                fig, axes = plot_random_Z_images(X_test_sampler, self.zc, self.z_std,  Y_test_sampler, self.T, z_sampler=self.z_sampler)
                 logger.log({'Random Test Images' : [wandb.Image(fig2img(fig))]}, step=step) 
                 plt.close(fig)
 
