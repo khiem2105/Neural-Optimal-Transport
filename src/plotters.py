@@ -68,10 +68,13 @@ def plot_Z_images(XZ, Y, T, path: str=None):
         plt.savefig(path, bbox_inches="tight")
     return fig, axes
 
-def plot_random_Z_images(X_sampler, ZC, Z_STD, Y_sampler, T, path: str=None):
+def plot_random_Z_images(X_sampler, ZC, Z_STD, Y_sampler, T, path: str=None, z_sampler="gaussian"):
     X = X_sampler.sample(10)[:,None].repeat(1,4,1,1,1)
     with torch.no_grad():
-        Z = torch.randn(10, 4, ZC, X.size(3), X.size(4), device='cuda') * Z_STD
+        if z_sampler == "gaussian":
+            Z = torch.randn(10, 4, ZC, X.size(3), X.size(4), device='cuda') * Z_STD
+        else:
+            Z = torch.rand(10, 4, ZC, X.size(3), X.size(4), device='cuda')
         XZ = torch.cat([X, Z], dim=2)
     X = X_sampler.sample(10)
     Y = Y_sampler.sample(10)

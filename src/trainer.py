@@ -232,7 +232,7 @@ class Trainer():
                 logger.log({'Fixed Images' : [wandb.Image(fig2img(fig))]}, step=step)
                 plt.close(fig)  
                 
-                fig, axes = plot_random_Z_images(X_train_sampler, self.zc, self.z_std,  Y_train_sampler, self.T)
+                fig, axes = plot_random_Z_images(X_train_sampler, self.zc, self.z_std,  Y_train_sampler, self.T, z_sampler=self.z_sampler)
                 logger.log({'Random Images' : [wandb.Image(fig2img(fig))]}, step=step)
                 plt.close(fig) 
                 
@@ -240,7 +240,7 @@ class Trainer():
                 logger.log({'Fixed Test Images' : [wandb.Image(fig2img(fig))]}, step=step) 
                 plt.close(fig)
 
-                fig, axes = plot_random_Z_images(X_test_sampler, self.zc, self.z_std,  Y_test_sampler, self.T)
+                fig, axes = plot_random_Z_images(X_test_sampler, self.zc, self.z_std,  Y_test_sampler, self.T, z_sampler=self.z_sampler)
                 logger.log({'Random Test Images' : [wandb.Image(fig2img(fig))]}, step=step) 
                 plt.close(fig)
 
