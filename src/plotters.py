@@ -49,7 +49,7 @@ def plot_Z_images(XZ, Y, T, path: str=None):
 
     fig, axes = plt.subplots(6, 10, figsize=(15, 9), dpi=150)
     for i, ax in enumerate(axes.flatten()):
-        ax.imshow(imgs[i])
+        ax.imshow(imgs[i], cmap="gray")
         ax.get_xaxis().set_visible(False)
         ax.set_yticks([])
         

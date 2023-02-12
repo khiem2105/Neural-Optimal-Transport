@@ -38,8 +38,8 @@ def load_celeba(img_size, batch_size, root="datasets", num_workers=2, test_ratio
         download=True
     )
 
-    male_inds = torch.where(celeba.attr[:, 21] == 0)[0]
-    female_inds = torch.where(celeba.attr[:, 21] == 1)[0]
+    male_inds = torch.where(celeba.attr[:, 20] == 1)[0]
+    female_inds = torch.where(celeba.attr[:, 20] == 0)[0]
 
     male_test_len = int(test_ratio * len(male_inds))
     male_train_len = len(male_inds) - male_test_len
